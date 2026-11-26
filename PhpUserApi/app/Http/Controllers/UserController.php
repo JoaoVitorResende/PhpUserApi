@@ -2,61 +2,60 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Resources\UserResource;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
 {
+    public function index(): JsonResponse
+    {
+        return UserResource::collection(User::all())->response();
+    }
+
     public function store(StoreUserRequest $request): JsonResponse
     {
         $user = User::create($request->validated());
 
-        return response()->json($user, 201);
+        return (new UserResource($user))->response()->setStatusCode(201);
     }
 
-public function index(): JsonResponse
-{
-    return response()->json(User::all());
-}
+    public function show(int $id): JsonResponse
+    {
+        $user = User::find($id);
 
-public function show(int $id): JsonResponse
-{
-    $user = User::find($id);
+        if ($user === null) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
 
-    if ($user === null) {
-        return response()->json(['message' => 'User not found'], 404);
+        return (new UserResource($user))->response();
     }
 
-    return response()->json($user);
-}
+    public function update(UpdateUserRequest $request, int $id): JsonResponse
+    {
+        $user = User::find($id);
 
-public function update(UpdateUserRequest $request, int $id): JsonResponse
-{
-    $user = User::find($id);
+        if ($user === null) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
 
-    if ($user === null) {
-        return response()->json(['message' => 'User not found'], 404);
+        $user->update($request->validated());
+
+        return (new UserResource($user))->response();
     }
 
-    $user->update($request->validated());
+    public function destroy(int $id): JsonResponse
+    {
+        $user = User::find($id);
 
-    return response()->json($user);
-}
+        if ($user === null) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
 
-public function destroy(int $id): JsonResponse
-{
-    $user = User::find($id);
+        $user->delete();
 
-    if ($user === null) {
-        return response()->json(['message' => 'User not found'], 404);
+        return response()->json(null, 204);
     }
-
-    $user->delete();
-
-    return response()->json(null, 204);
-}
-
 }
