@@ -6,6 +6,13 @@
 
 A simple user CRUD REST API built with PHP and Laravel. Backend only, no front-end.
 
+## Features
+
+- Full CRUD for users
+- Input validation with Form Requests
+- Response formatting with API Resources
+- SQLite database, no extra setup required
+
 ## Requirements
 
 - PHP 8.2+
@@ -26,22 +33,74 @@ The API will be available at `http://localhost:8000/api`.
 
 ## Endpoints
 
-| Method | Route             | Description        |
-|--------|-------------------|--------------------|
-| GET    | /api/ping         | Health check       |
-| POST   | /api/users        | Create a user      |
-| GET    | /api/users        | List all users     |
-| GET    | /api/users/{id}   | Get a user by id   |
-| PUT    | /api/users/{id}   | Update a user      |
-| DELETE | /api/users/{id}   | Delete a user      |
+| Method | Route           | Description      | Success |
+|--------|-----------------|------------------|---------|
+| GET    | /api/ping       | Health check     | 200     |
+| POST   | /api/users      | Create a user    | 201     |
+| GET    | /api/users      | List all users   | 200     |
+| GET    | /api/users/{id} | Get a user by id | 200     |
+| PUT    | /api/users/{id} | Update a user    | 200     |
+| DELETE | /api/users/{id} | Delete a user    | 204     |
 
-## Example
+Always send the `Accept: application/json` header so that validation errors are returned as JSON.
+
+## Request body
+
+| Field    | Rules                              |
+|----------|------------------------------------|
+| name     | required, string, max 255          |
+| email    | required, valid email, unique      |
+| password | required, string, min 8            |
+
+On update, all fields are optional, but any field sent must be valid.
+
+## Examples
+
+Create a user:
 
 ```bash
 curl -X POST http://localhost:8000/api/users \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
-  -d '{"name":"Joao","email":"joao@example.com","password":"12345678"}'
+  -d '{"name":"Maria","email":"maria@example.com","password":"12345678"}'
 ```
 
-Validation errors return `422` and missing users return `404`.
+Response (201):
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Maria",
+    "email": "maria@example.com",
+    "created_at": "2026-11-26T15:49:54.000000Z"
+  }
+}
+```
+
+Update a user:
+
+```bash
+curl -X PUT http://localhost:8000/api/users/1 \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"name":"Maria Silva"}'
+```
+
+## Error responses
+
+- `404` with `{"message": "User not found"}` when the user does not exist.
+- `422` with the validation errors when the request body is invalid.
+
+## Project structure
+
+```
+app/
+  Http/
+    Controllers/UserController.php
+    Requests/StoreUserRequest.php
+    Requests/UpdateUserRequest.php
+    Resources/UserResource.php
+  Models/User.php
+routes/api.php
+```
