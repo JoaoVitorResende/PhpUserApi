@@ -5,18 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 
 class UserController extends Controller
 {
-    public function store(Request $request): JsonResponse
+    public function store(StoreUserRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
-        ]);
-
-        $user = User::create($data);
+        $user = User::create($request->validated());
 
         return response()->json($user, 201);
     }
@@ -37,7 +33,7 @@ public function show(int $id): JsonResponse
     return response()->json($user);
 }
 
-public function update(Request $request, int $id): JsonResponse
+public function update(UpdateUserRequest $request, int $id): JsonResponse
 {
     $user = User::find($id);
 
@@ -45,13 +41,7 @@ public function update(Request $request, int $id): JsonResponse
         return response()->json(['message' => 'User not found'], 404);
     }
 
-    $data = $request->validate([
-        'name' => ['sometimes', 'required', 'string', 'max:255'],
-        'email' => ['sometimes', 'required', 'email', 'max:255', 'unique:users,email,' . $user->id],
-        'password' => ['sometimes', 'required', 'string', 'min:8'],
-    ]);
-
-    $user->update($data);
+    $user->update($request->validated());
 
     return response()->json($user);
 }
