@@ -20,4 +20,53 @@ class UserController extends Controller
 
         return response()->json($user, 201);
     }
+
+public function index(): JsonResponse
+{
+    return response()->json(User::all());
+}
+
+public function show(int $id): JsonResponse
+{
+    $user = User::find($id);
+
+    if ($user === null) {
+        return response()->json(['message' => 'User not found'], 404);
+    }
+
+    return response()->json($user);
+}
+
+public function update(Request $request, int $id): JsonResponse
+{
+    $user = User::find($id);
+
+    if ($user === null) {
+        return response()->json(['message' => 'User not found'], 404);
+    }
+
+    $data = $request->validate([
+        'name' => ['sometimes', 'required', 'string', 'max:255'],
+        'email' => ['sometimes', 'required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+        'password' => ['sometimes', 'required', 'string', 'min:8'],
+    ]);
+
+    $user->update($data);
+
+    return response()->json($user);
+}
+
+public function destroy(int $id): JsonResponse
+{
+    $user = User::find($id);
+
+    if ($user === null) {
+        return response()->json(['message' => 'User not found'], 404);
+    }
+
+    $user->delete();
+
+    return response()->json(null, 204);
+}
+
 }
